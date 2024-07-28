@@ -1,5 +1,5 @@
 /**
- * @athenna/template
+ * @athenna/cron
  *
  * (c) João Lenon <lenon@athenna.io>
  *

@@ -1,5 +1,5 @@
 /**
- * @athenna/template
+ * @athenna/cron
  *
  * (c) João Lenon <lenon@athenna.io>
  *
@@ -7,4 +7,4 @@
  * file that was distributed with this source code.
  */
 
-export * from '#src/bootstrap/Bootstrap'
+export * from '#src/cron/CronImpl'

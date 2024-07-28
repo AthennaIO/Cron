@@ -7,6 +7,7 @@
  * file that was distributed with this source code.
  */
 
-export * from '#src/types/Context'
-export * from '#src/types/CronHandler'
-export * from '#src/types/ScheduledTask'
+import { Facade } from '@athenna/ioc'
+import type { CronImpl } from '#src/cron/CronImpl'
+
+export const Cron = Facade.createFor<CronImpl>('Athenna/Core/Cron')

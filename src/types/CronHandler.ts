@@ -7,6 +7,6 @@
  * file that was distributed with this source code.
  */
 
-export * from '#src/types/Context'
-export * from '#src/types/CronHandler'
-export * from '#src/types/ScheduledTask'
+import type { Context } from '#src/types/Context'
+
+export type CronHandler = (ctx?: Context) => any | Promise<any>

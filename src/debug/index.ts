@@ -1,5 +1,5 @@
 /**
- * @athenna/template
+ * @athenna/cron
  *
  * (c) João Lenon <lenon@athenna.io>
  *
@@ -9,4 +9,4 @@
 
 import { debuglog } from 'node:util'
 
-export const debug = debuglog('athenna:template')
+export const debug = debuglog('athenna:cron')

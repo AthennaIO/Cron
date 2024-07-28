@@ -1,0 +1,70 @@
+/**
+ * @athenna/cron
+ *
+ * (c) João Lenon <lenon@athenna.io>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+import { getTasks, validate } from 'node-cron'
+import type { ScheduledTask } from '#src/types'
+import { CronBuilder } from '#src/cron/CronBuilder'
+
+export class CronImpl {
+  /**
+   * Creates a new instance of CronBuilder to register
+   * your scheduler.
+   *
+   * @example
+   * ```ts
+   * Cron.schedule().pattern('59 * * * *')
+   *    .handler((ctx) => console.log(`my cron pattern is ${ctx.pattern}`))
+   *    .register()
+   * ```
+   */
+  public schedule() {
+    return new CronBuilder()
+  }
+
+  /**
+   * Validate if CRON pattern is correct.
+   *
+   * @example
+   * ```ts
+   * const valid = Cron.validate('59 * * * *')
+   * const invalid = Cron.validate('60 * * * *')
+   * ```
+   */
+  public validate(pattern: string) {
+    return validate(pattern)
+  }
+
+  /**
+   * Returns a map with all tasks that has been scheduled.
+   *
+   * @example
+   * ```ts
+   * const tasks = Cron.getTasks()
+   *
+   * task.map(task => task.stop())
+   * ```
+   */
+  public getTasks(): Map<string, ScheduledTask> {
+    return getTasks() as Map<string, ScheduledTask>
+  }
+
+  /**
+   * Close all scheduled tasks.
+   *
+   * @example
+   * ```ts
+   * Cron.close()
+   * ```
+   */
+  public close() {
+    for (const task of this.getTasks().values()) {
+      task.stop()
+    }
+  }
+}

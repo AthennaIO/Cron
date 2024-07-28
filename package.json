@@ -1,12 +1,12 @@
 {
-  "name": "@athenna/template",
+  "name": "@athenna/cron",
   "version": "1.0.0",
-  "description": "Template for new projects.",
+  "description": "Athenna scheduler application. Built on top of node-cron.",
   "license": "MIT",
   "author": "João Lenon <lenon@athenna.io>",
-  "bugs": "https://github.com/AthennaIO/Template/issues",
-  "repository": "https://github.com/AthennaIO/Template.git",
-  "homepage": "https://github.com/AthennaIO/Template#readme",
+  "bugs": "https://github.com/AthennaIO/Cron/issues",
+  "repository": "https://github.com/AthennaIO/Cron.git",
+  "homepage": "https://github.com/AthennaIO/Cron#readme",
   "keywords": [
     "esm",
     "athenna"
@@ -51,8 +51,10 @@
   },
   "devDependencies": {
     "@athenna/common": "^4.43.0",
+    "@athenna/ioc": "^4.24.0",
     "@athenna/test": "^4.26.0",
     "@athenna/tsconfig": "^4.16.0",
+    "@types/node-cron": "^3.0.11",
     "@typescript-eslint/eslint-plugin": "^7.9.0",
     "@typescript-eslint/parser": "^7.9.0",
     "commitizen": "^4.3.0",
@@ -160,5 +162,8 @@
         }
       ]
     }
+  },
+  "dependencies": {
+    "node-cron": "^3.0.3"
   }
 }

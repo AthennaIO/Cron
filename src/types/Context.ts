@@ -7,6 +7,10 @@
  * file that was distributed with this source code.
  */
 
-export * from '#src/types/Context'
-export * from '#src/types/CronHandler'
-export * from '#src/types/ScheduledTask'
+export interface Context {
+  name?: string
+  pattern?: string
+  timezone?: string
+  runOnInit?: boolean
+  recoverMissedExecutions?: boolean
+}

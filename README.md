@@ -1,18 +1,18 @@
-# Template 📔
+# Cron ⏱️
 
-> Template for new projects
+> Athenna scheduler application. Built on top of node-cron.
 
 [![GitHub followers](https://img.shields.io/github/followers/athennaio.svg?style=social&label=Follow&maxAge=2592000)](https://github.com/athennaio?tab=followers)
-[![GitHub stars](https://img.shields.io/github/stars/AthennaIO/Template.svg?style=social&label=Star&maxAge=2592000)](https://github.com/AthennaIO/Template/stargazers/)
+[![GitHub stars](https://img.shields.io/github/stars/AthennaIO/Cron.svg?style=social&label=Star&maxAge=2592000)](https://github.com/AthennaIO/Cron/stargazers/)
 
 <p>
     <a href="https://www.buymeacoffee.com/athenna" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
 </p>
 
 <p>
-  <img alt="GitHub language count" src="https://img.shields.io/github/languages/count/AthennaIO/Template?style=for-the-badge&logo=appveyor">
+  <img alt="GitHub language count" src="https://img.shields.io/github/languages/count/AthennaIO/Cron?style=for-the-badge&logo=appveyor">
 
-  <img alt="Repository size" src="https://img.shields.io/github/repo-size/AthennaIO/Template?style=for-the-badge&logo=appveyor">
+  <img alt="Repository size" src="https://img.shields.io/github/repo-size/AthennaIO/Cron?style=for-the-badge&logo=appveyor">
 
   <img alt="License" src="https://img.shields.io/badge/license-MIT-brightgreen?style=for-the-badge&logo=appveyor">
 
@@ -27,7 +27,7 @@
 
 ## Contributing
 
-> If you want to contribute to this project, first read the [CONTRIBUTING.MD](https://github.com/AthennaIO/Template/blob/develop/CONTRIBUTING.md) file. It will be a pleasure to receive your help.
+> If you want to contribute to this project, first read the [CONTRIBUTING.MD](https://github.com/AthennaIO/Cron/blob/develop/CONTRIBUTING.md) file. It will be a pleasure to receive your help.
 
 ---
 
@@ -36,7 +36,7 @@
 </p>
 
 <p align='center'>
-  <a href='https://github.com/AthennaIO/Template/graphs/contributors'>
-    <img src='https://contrib.rocks/image?repo=AthennaIO/Template'/>
+  <a href='https://github.com/AthennaIO/Cron/graphs/contributors'>
+    <img src='https://contrib.rocks/image?repo=AthennaIO/Cron'/>
   </a>
 </p>
