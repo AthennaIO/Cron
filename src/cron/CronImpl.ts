@@ -41,6 +41,20 @@ export class CronImpl {
   }
 
   /**
+   * Register the error handler for all tasks.
+   *
+   * @example
+   * ```ts
+   * Cron.setErrorHandler((err) => console.error(err))
+   * ```
+   */
+  public setErrorHandler(handler: any) {
+    CronBuilder.exceptionHandler = handler
+
+    return this
+  }
+
+  /**
    * Returns a map with all tasks that has been scheduled.
    *
    * @example

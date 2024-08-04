@@ -12,6 +12,8 @@ import { Options } from '@athenna/common'
 import type { CronHandler } from '#src/types'
 
 export class CronBuilder {
+  public static exceptionHandler: any
+
   private cron: {
     name?: string
     pattern?: string
@@ -28,9 +30,9 @@ export class CronBuilder {
    *
    * @example
    * ```ts
-   * Cron.schedule().pattern('* * * * *')
+   * Cron.schedule()
+   *    .pattern('* * * * *')
    *    .handler(() => console.log('hey'))
-   *    .register()
    * ```
    */
   public pattern(pattern: string) {
@@ -40,19 +42,56 @@ export class CronBuilder {
   }
 
   /**
-   * Defines what operation the scheduler will run.
+   * Defines what operation the scheduler will run and
+   * register your scheduler with all options defined.
+   * This method also return an instance of your scheduler,
+   * you can use this instance to stop your scheduler.
    *
    * @example
    * ```ts
-   * Cron.schedule().pattern('* * * * *')
+   * const task = Cron.schedule()
+   *    .pattern('* * * * *')
    *    .handler(() => console.log('hey'))
-   *    .register()
+   *
+   * task.stop()
    * ```
    */
   public handler(handler: CronHandler) {
-    this.cron.handler = handler
+    const register = () => {
+      const ctx = {
+        name: this.cron.name,
+        pattern: this.cron.pattern,
+        timezone: this.cron.timezone,
+        runOnInit: this.cron.runOnInit,
+        recoverMissedExecutions: this.cron.recoverMissedExecutions
+      }
 
-    return this
+      const options = Options.create({
+        name: this.cron.name,
+        timezone: this.cron.timezone,
+        runOnInit: this.cron.runOnInit,
+        scheduled: this.cron.scheduled,
+        recoverMissedExecutions: this.cron.recoverMissedExecutions
+      })
+
+      return schedule(this.cron.pattern, () => this.cron.handler(ctx), options)
+    }
+
+    if (!CronBuilder.exceptionHandler) {
+      this.cron.handler = handler
+
+      return register()
+    }
+
+    this.cron.handler = async (...args: any[]) => {
+      try {
+        await handler(...args)
+      } catch (err) {
+        CronBuilder.exceptionHandler(err)
+      }
+    }
+
+    return register()
   }
 
   /**
@@ -63,9 +102,8 @@ export class CronBuilder {
    * @example
    * ```ts
    * Cron.schedule().pattern('* * * * *')
-   *    .handler(() => console.log('hey'))
    *    .scheduled(true)
-   *    .register()
+   *    .handler(() => console.log('hey'))
    * ```
    */
   public scheduled(scheduled: boolean) {
@@ -82,7 +120,6 @@ export class CronBuilder {
    * Cron.schedule().pattern('* * * * *')
    *    .name('myScheduler')
    *    .handler(() => console.log('hey'))
-   *    .register()
    * ```
    */
   public name(name: string) {
@@ -98,9 +135,8 @@ export class CronBuilder {
    * @example
    * ```ts
    * Cron.schedule().pattern('* * * * *')
-   *    .handler(() => console.log('hey'))
    *    .timezone('America/Sao_Paulo')
-   *    .register()
+   *    .handler(() => console.log('hey'))
    * ```
    */
   public timezone(timezone: string) {
@@ -117,9 +153,8 @@ export class CronBuilder {
    * @example
    * ```ts
    * Cron.schedule().pattern('* * * * *')
-   *    .handler(() => console.log('hey'))
    *    .runOnInit(true)
-   *    .register()
+   *    .handler(() => console.log('hey'))
    * ```
    */
   public runOnInit(runOnInit: boolean) {
@@ -136,49 +171,13 @@ export class CronBuilder {
    * @example
    * ```ts
    * Cron.schedule().pattern('* * * * *')
-   *    .handler(() => console.log('hey'))
    *    .recoverMissingExecutions(true)
-   *    .register()
+   *    .handler(() => console.log('hey'))
    * ```
    */
   public recoverMissedExecutions(recoverMissedExecutions?: boolean) {
     this.cron.recoverMissedExecutions = recoverMissedExecutions
 
     return this
-  }
-
-  /**
-   * Register your scheduler with all options defined.
-   * This method also returns an instance of your scheduler,
-   * you can use this instance to stop your scheduler.
-   *
-   * @example
-   * ```ts
-   * const task = Cron.schedule().pattern('* * * * *')
-   *    .handler(() => console.log('hey'))
-   *    .register()
-   *
-   * task.stop()
-   * ```
-   *
-   */
-  public register() {
-    const ctx = {
-      name: this.cron.name,
-      pattern: this.cron.pattern,
-      timezone: this.cron.timezone,
-      runOnInit: this.cron.runOnInit,
-      recoverMissedExecutions: this.cron.recoverMissedExecutions
-    }
-
-    const options = Options.create({
-      name: this.cron.name,
-      timezone: this.cron.timezone,
-      runOnInit: this.cron.runOnInit,
-      scheduled: this.cron.scheduled,
-      recoverMissedExecutions: this.cron.recoverMissedExecutions
-    })
-
-    return schedule(this.cron.pattern, () => this.cron.handler(ctx), options)
   }
 }

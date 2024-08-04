@@ -30,9 +30,8 @@ export class CronImplTest {
 
     Cron.schedule()
       .pattern('59 * * * *')
-      .handler(() => (hasRun = true))
       .runOnInit(true)
-      .register()
+      .handler(() => (hasRun = true))
 
     assert.isTrue(hasRun)
   }
@@ -57,7 +56,6 @@ export class CronImplTest {
     Cron.schedule()
       .pattern('59 * * * *')
       .handler(() => (hasRun = true))
-      .register()
 
     Cron.close()
 
@@ -70,7 +68,6 @@ export class CronImplTest {
       .name('myTask')
       .pattern('59 * * * *')
       .handler(() => {})
-      .register()
 
     const tasks = Cron.getTasks()
 
@@ -84,7 +81,6 @@ export class CronImplTest {
       .pattern('59 * * * *')
       .scheduled(false)
       .handler(() => {})
-      .register()
 
     const tasks = Cron.getTasks()
     const task = tasks.get('disabledTask')
@@ -99,7 +95,6 @@ export class CronImplTest {
       .pattern('59 * * * *')
       .timezone('America/Sao_Paulo')
       .handler(() => {})
-      .register()
 
     const tasks = Cron.getTasks()
     const task = tasks.get('timezoneTask')
@@ -114,7 +109,6 @@ export class CronImplTest {
       .pattern('59 * * * *')
       .recoverMissedExecutions(true)
       .handler(() => {})
-      .register()
 
     const tasks = Cron.getTasks()
     const task = tasks.get('recoverMissedExecutionsTask')
@@ -129,14 +123,12 @@ export class CronImplTest {
       .scheduled(false)
       .pattern('59 * * * *')
       .handler(() => {})
-      .register()
 
     Cron.schedule()
       .name('overwriteScheduler')
       .scheduled(true)
       .pattern('59 * * * *')
       .handler(() => {})
-      .register()
 
     const tasks = Cron.getTasks()
     const task = tasks.get('overwriteScheduler')
