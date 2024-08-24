@@ -10,9 +10,18 @@
 import { schedule } from 'node-cron'
 import { Options } from '@athenna/common'
 import type { CronHandler } from '#src/types'
+import type { CronExceptionHandler } from '#src/handlers/CronExceptionHandler'
 
 export class CronBuilder {
-  public static exceptionHandler: any
+  public static rTracerPlugin: any
+  public static exceptionHandler: CronExceptionHandler
+
+  /**
+   * Register the cls-rtracer plugin into cron handlers.
+   */
+  public static registerRTracer(plugin: any) {
+    this.rTracerPlugin = plugin
+  }
 
   private cron: {
     name?: string
@@ -42,6 +51,28 @@ export class CronBuilder {
   }
 
   /**
+   * Register a scheduler handler for a dependency that exists
+   * inside "rc.schedulers".
+   *
+   * @example
+   * ```ts
+   * const task = Cron.schedule()
+   *    .pattern('* * * * *')
+   *    .scheduler('MyCustomSchedulerClass')
+   *
+   * task.stop()
+   * ```
+   */
+  public scheduler(name: string) {
+    return this.handler(ctx => {
+      const scheduler =
+        ioc.use(name) || ioc.safeUse(`App/Cron/Schedulers/${name}`)
+
+      return scheduler.handle(ctx)
+    })
+  }
+
+  /**
    * Defines what operation the scheduler will run and
    * register your scheduler with all options defined.
    * This method also return an instance of your scheduler,
@@ -58,13 +89,16 @@ export class CronBuilder {
    */
   public handler(handler: CronHandler) {
     const register = () => {
-      const ctx = {
+      const getCtx = () => ({
         name: this.cron.name,
+        traceId: CronBuilder.rTracerPlugin
+          ? CronBuilder.rTracerPlugin.id()
+          : null,
         pattern: this.cron.pattern,
         timezone: this.cron.timezone,
         runOnInit: this.cron.runOnInit,
         recoverMissedExecutions: this.cron.recoverMissedExecutions
-      }
+      })
 
       const options = Options.create({
         name: this.cron.name,
@@ -74,7 +108,22 @@ export class CronBuilder {
         recoverMissedExecutions: this.cron.recoverMissedExecutions
       })
 
-      return schedule(this.cron.pattern, () => this.cron.handler(ctx), options)
+      if (CronBuilder.rTracerPlugin) {
+        return schedule(
+          this.cron.pattern,
+          () =>
+            CronBuilder.rTracerPlugin.runWithId(() =>
+              this.cron.handler(getCtx())
+            ),
+          options
+        )
+      }
+
+      return schedule(
+        this.cron.pattern,
+        () => this.cron.handler(getCtx()),
+        options
+      )
     }
 
     if (!CronBuilder.exceptionHandler) {
@@ -87,7 +136,7 @@ export class CronBuilder {
       try {
         await handler(...args)
       } catch (err) {
-        CronBuilder.exceptionHandler(err)
+        CronBuilder.exceptionHandler.handle(err)
       }
     }
 

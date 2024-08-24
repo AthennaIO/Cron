@@ -7,11 +7,11 @@
  * file that was distributed with this source code.
  */
 
-export interface Context {
-  name?: string
-  traceId?: string
-  pattern?: string
-  timezone?: string
-  runOnInit?: boolean
-  recoverMissedExecutions?: boolean
+import { Scheduler } from '#src'
+
+@Scheduler({ pattern: '* * * * *' })
+export class ProductScheduler {
+  public async handler() {
+    return 'handler'
+  }
 }

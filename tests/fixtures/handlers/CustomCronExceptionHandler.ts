@@ -7,11 +7,11 @@
  * file that was distributed with this source code.
  */
 
-export interface Context {
-  name?: string
-  traceId?: string
-  pattern?: string
-  timezone?: string
-  runOnInit?: boolean
-  recoverMissedExecutions?: boolean
+export class CustomCronExceptionHandler {
+  /**
+   * The exception handler of all Artisan commands.
+   */
+  public async handle(error: any): Promise<void> {
+    console.error(error)
+  }
 }

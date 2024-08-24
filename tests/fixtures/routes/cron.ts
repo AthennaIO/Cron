@@ -7,11 +7,9 @@
  * file that was distributed with this source code.
  */
 
-export interface Context {
-  name?: string
-  traceId?: string
-  pattern?: string
-  timezone?: string
-  runOnInit?: boolean
-  recoverMissedExecutions?: boolean
-}
+import { Cron } from '#src'
+
+Cron.schedule()
+  .name('route_scheduler')
+  .pattern('* * * * *')
+  .handler(() => {})

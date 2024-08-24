@@ -7,11 +7,6 @@
  * file that was distributed with this source code.
  */
 
-export interface Context {
-  name?: string
-  traceId?: string
-  pattern?: string
-  timezone?: string
-  runOnInit?: boolean
-  recoverMissedExecutions?: boolean
+export class HelloScheduler {
+  public async handler() {}
 }
