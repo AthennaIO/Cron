@@ -21,6 +21,9 @@ export class CronKernelTest {
   public async beforeEach() {
     ioc.reconstruct()
 
+    CronBuilder.rTracerPlugin = undefined
+    CronBuilder.exceptionHandler = undefined
+
     await Config.loadAll(Path.fixtures('config'))
     new CronProvider().register()
   }
@@ -29,7 +32,7 @@ export class CronKernelTest {
   public async afterEach() {
     Mock.restoreAll()
 
-    Cron.close()
+    Cron.close().truncate()
   }
 
   @Test()
@@ -78,6 +81,26 @@ export class CronKernelTest {
   }
 
   @Test()
+  public async shouldNotRegisterRTracerPluginInCronHandlerIfSetFalseAsArgument({ assert }: Context) {
+    const kernel = new CronKernel()
+
+    await kernel.registerRTracer(false)
+
+    assert.isUndefined(CronBuilder.rTracerPlugin)
+  }
+
+  @Test()
+  public async shouldNotRegisterRTracerPluginInCronHandlerIfRTracerConfigIsDisabled({ assert }: Context) {
+    Config.set('cron.rTracer.enabled', false)
+
+    const kernel = new CronKernel()
+
+    await kernel.registerRTracer()
+
+    assert.isUndefined(CronBuilder.rTracerPlugin)
+  }
+
+  @Test()
   public async shouldBeAbleToGetTraceIdInHandlerWhenRTracerPluginIsEnabled({ assert }: Context) {
     const kernel = new CronKernel()
 
@@ -108,12 +131,13 @@ export class CronKernelTest {
     assert.equal(ioc.getRegistration('App/Cron/Schedulers/HelloScheduler').lifetime, 'TRANSIENT')
 
     assert.isTrue(ioc.has('decoratedScheduler'))
+    assert.isTrue(ioc.has('annotatedScheduler'))
     assert.isFalse(ioc.has('App/Cron/Schedulers/AnnotatedScheduler'))
     assert.equal(ioc.getRegistration('decoratedScheduler').lifetime, 'SINGLETON')
   }
 
   @Test()
-  public async shouldBeAbleToRegisterCronRouteFile({ assert }: Context) {
+  public async shouldBeAbleToRegisterCronRouteFileByImportAlias({ assert }: Context) {
     const kernel = new CronKernel()
 
     await kernel.registerRoutes('#tests/fixtures/routes/cron')
@@ -121,5 +145,27 @@ export class CronKernelTest {
     const crons = Cron.getTasks()
 
     assert.isTrue(crons.has('route_scheduler'))
+  }
+
+  @Test()
+  public async shouldBeAbleToRegisterCronRouteFileByFullPath({ assert }: Context) {
+    const kernel = new CronKernel()
+
+    await kernel.registerRoutes(Path.fixtures('routes/cron_absolute.js'))
+
+    const crons = Cron.getTasks()
+
+    assert.isTrue(crons.has('route_scheduler_absolute'))
+  }
+
+  @Test()
+  public async shouldBeAbleToRegisterCronRouteFileByPartialPath({ assert }: Context) {
+    const kernel = new CronKernel()
+
+    await kernel.registerRoutes('./tests/fixtures/routes/cron_partial.js')
+
+    const crons = Cron.getTasks()
+
+    assert.isTrue(crons.has('route_scheduler_partial'))
   }
 }

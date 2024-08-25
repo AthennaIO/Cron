@@ -7,7 +7,9 @@
  * file that was distributed with this source code.
  */
 
-export * from '#src/types/Context'
-export * from '#src/types/CronHandler'
-export * from '#src/types/ScheduledTask'
-export * from '#src/types/schedulers/SchedulerOptions'
+import { Cron } from '#src'
+
+Cron.schedule()
+  .name('route_scheduler_partial')
+  .pattern('* * * * *')
+  .handler(() => {})

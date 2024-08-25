@@ -80,5 +80,25 @@ export class CronImpl {
     for (const task of this.getTasks().values()) {
       task.stop()
     }
+
+    return this
+  }
+
+  /**
+   * Delete all scheduled tasks.
+   *
+   * @example
+   * ```ts
+   * Cron.truncate()
+   * ```
+   */
+  public truncate() {
+    const tasks = this.getTasks()
+
+    for (const task of tasks.keys()) {
+      tasks.delete(task)
+    }
+
+    return this
   }
 }

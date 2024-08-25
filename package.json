@@ -1,6 +1,6 @@
 {
   "name": "@athenna/cron",
-  "version": "1.0.0",
+  "version": "4.0.0",
   "description": "Athenna scheduler application. Built on top of node-cron.",
   "license": "MIT",
   "author": "João Lenon <lenon@athenna.io>",
@@ -37,7 +37,11 @@
     "./types": "./src/types/index.js",
     "./package": "./package.json",
     "./package.json": "./package.json",
-    "./testing/plugins": "./src/testing/plugins/index.js"
+    "./testing/plugins": "./src/testing/plugins/index.js",
+    "./kernels/CronKernel": "./src/kernels/CronKernel.js",
+    "./handlers/CronExceptionHandler": "./src/handlers/CronExceptionHandler.js",
+    "./providers/CronProvider": "./src/providers/CronProvider.js",
+    "./commands/MakeSchedulerCommand": "./src/commands/MakeSchedulerCommand.js"
   },
   "imports": {
     "#bin/*": "./bin/*.js",
@@ -53,12 +57,14 @@
     "node-cron": "^3.0.3"
   },
   "devDependencies": {
-    "@athenna/common": "^4.45.0",
-    "@athenna/config": "^4.25.0",
-    "@athenna/ioc": "^4.25.0",
-    "@athenna/logger": "^4.26.0",
-    "@athenna/test": "^4.29.0",
-    "@athenna/tsconfig": "^4.18.0",
+    "@athenna/artisan": "^4.45.0",
+    "@athenna/common": "^4.46.0",
+    "@athenna/config": "^4.27.0",
+    "@athenna/ioc": "^4.27.0",
+    "@athenna/logger": "^4.29.0",
+    "@athenna/test": "^4.30.0",
+    "@athenna/tsconfig": "^4.19.0",
+    "@athenna/view": "^4.33.0",
     "@types/node-cron": "^3.0.11",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
@@ -170,6 +176,9 @@
     }
   },
   "athenna": {
+    "templates": {
+      "scheduler": "./templates/scheduler.edge"
+    },
     "schedulers": [
       "#tests/fixtures/schedulers/AnnotatedScheduler",
       "#tests/fixtures/schedulers/HelloScheduler"

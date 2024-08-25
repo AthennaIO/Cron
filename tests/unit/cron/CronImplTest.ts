@@ -44,9 +44,14 @@ export class CronImplTest {
 
   @Test()
   public async shouldBeAbleToListAllScheduledTasks({ assert }: Context) {
+    Cron.schedule()
+      .name('listAll')
+      .pattern('59 * * * *')
+      .handler(() => {})
+
     const tasks = Cron.getTasks()
 
-    assert.deepEqual(tasks.size, 1)
+    assert.isTrue(tasks.size >= 1)
   }
 
   @Test()
@@ -54,6 +59,7 @@ export class CronImplTest {
     let hasRun = false
 
     Cron.schedule()
+      .name('stopAll')
       .pattern('59 * * * *')
       .handler(() => (hasRun = true))
 

@@ -22,6 +22,6 @@ export class CronProvider extends ServiceProvider {
       return
     }
 
-    Cron.close()
+    Cron.close().truncate()
   }
 }

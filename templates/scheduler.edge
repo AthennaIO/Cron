@@ -1,0 +1,8 @@
+import { Scheduler, type Context } from '@athenna/cron'
+
+@Scheduler({ pattern: '* * * * *' })
+export class {{ namePascal }} {
+    public async handler(ctx: Context) {
+      //
+    }
+}

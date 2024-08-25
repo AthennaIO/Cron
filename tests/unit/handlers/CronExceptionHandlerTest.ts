@@ -28,7 +28,7 @@ export class CronExceptionHandlerTest {
   public async afterEach() {
     Mock.restoreAll()
 
-    Cron.close()
+    Cron.close().truncate()
   }
 
   @Test()
