@@ -1,8 +1,8 @@
-import { sep } from 'node:path'
 import { debug } from '#src/debug'
 import { Cron } from '#src/facades/Cron'
 import { CronBuilder } from '#src/cron/CronBuilder'
-import { Exec, Module, Path } from '@athenna/common'
+import { sep, resolve, isAbsolute } from 'node:path'
+import { Exec, File, Module, Path } from '@athenna/common'
 import { Annotation, type ServiceMeta } from '@athenna/ioc'
 import { CronExceptionHandler } from '#src/handlers/CronExceptionHandler'
 
@@ -77,6 +77,20 @@ export class CronKernel {
    * Register the route file by importing the file.
    */
   public async registerRoutes(path: string) {
+    if (path.startsWith('#')) {
+      await Module.resolve(path, this.getParentURL())
+
+      return
+    }
+
+    if (!isAbsolute(path)) {
+      path = resolve(path)
+    }
+
+    if (!(await File.exists(path))) {
+      return
+    }
+
     await Module.resolve(path, this.getParentURL())
   }
 

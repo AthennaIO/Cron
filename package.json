@@ -1,6 +1,6 @@
 {
   "name": "@athenna/cron",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "description": "Athenna scheduler application. Built on top of node-cron.",
   "license": "MIT",
   "author": "João Lenon <lenon@athenna.io>",

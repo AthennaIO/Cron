@@ -151,7 +151,7 @@ export class CronKernelTest {
   public async shouldBeAbleToRegisterCronRouteFileByFullPath({ assert }: Context) {
     const kernel = new CronKernel()
 
-    await kernel.registerRoutes(Path.fixtures('routes/cron_absolute.js'))
+    await kernel.registerRoutes(Path.fixtures('routes/cron_absolute.ts'))
 
     const crons = Cron.getTasks()
 
@@ -162,7 +162,7 @@ export class CronKernelTest {
   public async shouldBeAbleToRegisterCronRouteFileByPartialPath({ assert }: Context) {
     const kernel = new CronKernel()
 
-    await kernel.registerRoutes('./tests/fixtures/routes/cron_partial.js')
+    await kernel.registerRoutes('./tests/fixtures/routes/cron_partial.ts')
 
     const crons = Cron.getTasks()
 
