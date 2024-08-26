@@ -81,6 +81,20 @@ export class CronImplTest {
   }
 
   @Test()
+  public async shouldBeAbleToManuallyRunATaskByName({ assert }: Context) {
+    let hasRun = false
+
+    Cron.schedule()
+      .name('manual_run')
+      .pattern('59 * * * *')
+      .handler(() => (hasRun = true))
+
+    await Cron.runByName('manual_run')
+
+    assert.isTrue(hasRun)
+  }
+
+  @Test()
   public async shouldBeAbleToScheduleATaskWithDisabledScheduler({ assert }: Context) {
     Cron.schedule()
       .name('disabledTask')
