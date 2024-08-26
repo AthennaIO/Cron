@@ -10,6 +10,7 @@
 import { getTasks, validate } from 'node-cron'
 import type { ScheduledTask } from '#src/types'
 import { CronBuilder } from '#src/cron/CronBuilder'
+import { NotFoundTaskNameException } from '#src/exceptions/NotFoundTaskNameException'
 
 export class CronImpl {
   /**
@@ -66,6 +67,26 @@ export class CronImpl {
    */
   public getTasks(): Map<string, ScheduledTask> {
     return getTasks() as Map<string, ScheduledTask>
+  }
+
+  /**
+   * Run a scheduler by its name.
+   *
+   * @example
+   * ```ts
+   * await Cron.runByName('MySchedulerClassName')
+   * ```
+   */
+  public async runByName(name: string) {
+    const task = this.getTasks()?.get(name)
+
+    if (!task) {
+      throw new NotFoundTaskNameException(name)
+    }
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    await task._task._execution()
   }
 
   /**

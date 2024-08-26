@@ -8,11 +8,13 @@
  */
 
 import { Runner } from '@athenna/test'
+import { scheduler } from '#src/testing/plugins/index'
 import { command } from '@athenna/artisan/testing/plugins'
 
 await Runner.setTsEnv()
   .addAssertPlugin()
   .addPlugin(command())
+  .addPlugin(scheduler())
   .addPath('tests/unit/**/*.ts')
   .setCliArgs(process.argv.slice(2))
   .setGlobalTimeout(10000)
