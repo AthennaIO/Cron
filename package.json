@@ -1,6 +1,6 @@
 {
   "name": "@athenna/cron",
-  "version": "5.0.0",
+  "version": "5.1.0",
   "description": "Athenna scheduler application. Built on top of node-cron.",
   "license": "MIT",
   "author": "João Lenon <lenon@athenna.io>",
@@ -57,7 +57,7 @@
     "node-cron": "^3.0.3"
   },
   "devDependencies": {
-    "@athenna/artisan": "^5.0.0",
+    "@athenna/artisan": "^5.1.0",
     "@athenna/common": "^5.0.0",
     "@athenna/config": "^5.0.0",
     "@athenna/ioc": "^5.0.0",
