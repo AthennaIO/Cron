@@ -19,12 +19,12 @@ export default class MakeSchedulerCommandTest extends BaseCommandTest {
     output.assertSucceeded()
     output.assertLogged('[ MAKING SCHEDULER ]')
     output.assertLogged('[  success  ] Scheduler "TestScheduler" successfully created.')
-    output.assertLogged('[  success  ] Athenna RC updated: [ schedulers += "#app/cron/schedulers/TestScheduler" ]')
+    output.assertLogged('[  success  ] Athenna RC updated: [ schedulers += "#src/cron/schedulers/TestScheduler" ]')
 
     const { athenna } = await new File(Path.pwd('package.json')).getContentAsJson()
 
     assert.isTrue(await File.exists(Path.schedulers('TestScheduler.ts')))
-    assert.containsSubset(athenna.schedulers, ['#app/cron/schedulers/TestScheduler'])
+    assert.containsSubset(athenna.schedulers, ['#src/cron/schedulers/TestScheduler'])
   }
 
   @Test()
