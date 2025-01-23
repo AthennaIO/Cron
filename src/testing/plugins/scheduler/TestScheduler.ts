@@ -8,8 +8,9 @@
  */
 
 import { Cron } from '@athenna/cron'
+import { Macroable } from '@athenna/common'
 
-export class TestScheduler {
+export class TestScheduler extends Macroable {
   /**
    * Run a specific scheduler by its name.
    *
