@@ -2,7 +2,7 @@ import { debug } from '#src/debug'
 import { Cron } from '#src/facades/Cron'
 import { CronBuilder } from '#src/cron/CronBuilder'
 import { sep, resolve, isAbsolute } from 'node:path'
-import { Exec, File, Module, Path } from '@athenna/common'
+import { File, Path, Module } from '@athenna/common'
 import { Annotation, type ServiceMeta } from '@athenna/ioc'
 import { CronExceptionHandler } from '#src/handlers/CronExceptionHandler'
 
@@ -60,7 +60,7 @@ export class CronKernel {
   public async registerSchedulers(): Promise<void> {
     const schedulers = Config.get<string[]>('rc.schedulers', [])
 
-    await Exec.concurrently(schedulers, async path => {
+    await schedulers.athenna.concurrently(async path => {
       const Scheduler = await Module.resolve(path, this.getParentURL())
 
       if (Annotation.isAnnotated(Scheduler)) {

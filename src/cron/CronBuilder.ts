@@ -8,11 +8,11 @@
  */
 
 import { schedule } from 'node-cron'
-import { Options } from '@athenna/common'
 import type { CronHandler } from '#src/types'
+import { Macroable, Options } from '@athenna/common'
 import type { CronExceptionHandler } from '#src/handlers/CronExceptionHandler'
 
-export class CronBuilder {
+export class CronBuilder extends Macroable {
   public static rTracerPlugin: any
   public static exceptionHandler: CronExceptionHandler
 

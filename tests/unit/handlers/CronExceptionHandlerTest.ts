@@ -10,7 +10,7 @@
 import { Cron } from '#src/facades/Cron'
 import { CronKernel } from '#src/kernels/CronKernel'
 import { Log, LoggerProvider } from '@athenna/logger'
-import { Path, Exec, Exception } from '@athenna/common'
+import { Path, Sleep, Exception } from '@athenna/common'
 import { CronProvider } from '#src/providers/CronProvider'
 import { Test, BeforeEach, AfterEach, type Context, Mock } from '@athenna/test'
 
@@ -47,7 +47,7 @@ export class CronExceptionHandlerTest {
         throw exception
       })
 
-    await Exec.sleep(100)
+    await Sleep.for(100).milliseconds().wait()
 
     assert.calledWith(spy.error, await exception.prettify())
   }
@@ -71,7 +71,7 @@ export class CronExceptionHandlerTest {
         throw error
       })
 
-    await Exec.sleep(100)
+    await Sleep.for(100).milliseconds().wait()
 
     assert.calledOnce(spy.error)
   }

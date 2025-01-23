@@ -8,7 +8,7 @@
  */
 
 import { Cron } from '#src/facades/Cron'
-import { Exec, Path } from '@athenna/common'
+import { Path, Sleep } from '@athenna/common'
 import { CronBuilder } from '#src/cron/CronBuilder'
 import { CronKernel } from '#src/kernels/CronKernel'
 import { CronProvider } from '#src/providers/CronProvider'
@@ -116,7 +116,7 @@ export class CronKernelTest {
         traceId = ctx.traceId
       })
 
-    await Exec.sleep(100)
+    await Sleep.for(100).milliseconds().wait()
 
     assert.isDefined(traceId)
   }

@@ -7,12 +7,13 @@
  * file that was distributed with this source code.
  */
 
+import { Macroable } from '@athenna/common'
 import { getTasks, validate } from 'node-cron'
 import type { ScheduledTask } from '#src/types'
 import { CronBuilder } from '#src/cron/CronBuilder'
 import { NotFoundTaskNameException } from '#src/exceptions/NotFoundTaskNameException'
 
-export class CronImpl {
+export class CronImpl extends Macroable {
   /**
    * Creates a new instance of CronBuilder to register
    * your scheduler.
