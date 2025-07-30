@@ -81,15 +81,6 @@ export class CronKernelTest {
   }
 
   @Test()
-  public async shouldNotRegisterRTracerPluginInCronHandlerIfSetFalseAsArgument({ assert }: Context) {
-    const kernel = new CronKernel()
-
-    await kernel.registerRTracer(false)
-
-    assert.isUndefined(CronBuilder.rTracerPlugin)
-  }
-
-  @Test()
   public async shouldNotRegisterRTracerPluginInCronHandlerIfRTracerConfigIsDisabled({ assert }: Context) {
     Config.set('cron.rTracer.enabled', false)
 

@@ -12,16 +12,8 @@ export class CronKernel {
   /**
    * Register the cls-rtracer plugin in the Cron.
    */
-  public async registerRTracer(trace?: boolean): Promise<void> {
-    if (trace === false) {
-      debug(
-        'Not able to register rTracer plugin. Set the trace option as true in your cron options.'
-      )
-
-      return
-    }
-
-    if (trace === undefined && Config.is('cron.rTracer.enabled', false)) {
+  public async registerRTracer(): Promise<void> {
+    if (Config.is('cron.rTracer.enabled', false)) {
       debug(
         'Not able to register rTracer plugin. Set the cron.rTracer.enabled configuration as true.'
       )
