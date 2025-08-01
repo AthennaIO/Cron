@@ -8,6 +8,9 @@
  */
 
 export default {
+  logger: {
+    prettifyException: true
+  },
   rTracer: {
     enabled: true
   }
