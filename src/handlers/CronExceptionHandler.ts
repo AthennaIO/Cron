@@ -52,27 +52,13 @@ export class CronExceptionHandler {
       return
     }
 
-    const isUsingJsonFormatter = Config.is(
-      'logging.channels.exception.formatter',
-      'json'
-    )
-
-    if (isUsingJsonFormatter) {
-      Log.channelOrVanilla('exception').error({
-        name: error.name,
-        code: error.code,
-        status: error.status,
-        message: error.message,
-        help: error.help,
-        cause: error.cause,
-        details: error.details,
-        stack: error.stack
-      })
+    if (Config.is('cron.logger.prettifyException', true)) {
+      Log.channelOrVanilla('exception').error(await error.prettify())
 
       return
     }
 
-    Log.channelOrVanilla('exception').error(await error.prettify())
+    Log.channelOrVanilla('exception').error(error)
   }
 
   /**
