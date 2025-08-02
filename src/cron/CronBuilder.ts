@@ -8,12 +8,14 @@
  */
 
 import { schedule } from 'node-cron'
+import { Log } from '@athenna/logger'
 import type { CronHandler } from '#src/types'
 import { Macroable, Options } from '@athenna/common'
 import type { CronExceptionHandler } from '#src/handlers/CronExceptionHandler'
 
 export class CronBuilder extends Macroable {
   public static rTracerPlugin: any
+  public static loggerIsSet: boolean = false
   public static exceptionHandler: CronExceptionHandler
 
   /**
@@ -21,6 +23,13 @@ export class CronBuilder extends Macroable {
    */
   public static registerRTracer(plugin: any) {
     this.rTracerPlugin = plugin
+  }
+
+  /**
+   * Register the logger plugin into cron handlers.
+   */
+  public static registerLogger(isToSetLogger: boolean) {
+    this.loggerIsSet = isToSetLogger
   }
 
   private cron: {
@@ -88,59 +97,66 @@ export class CronBuilder extends Macroable {
    * ```
    */
   public handler(handler: CronHandler) {
-    const register = () => {
-      const getCtx = () => ({
-        name: this.cron.name,
-        traceId: CronBuilder.rTracerPlugin
-          ? CronBuilder.rTracerPlugin.id()
-          : null,
-        pattern: this.cron.pattern,
-        timezone: this.cron.timezone,
-        runOnInit: this.cron.runOnInit,
-        recoverMissedExecutions: this.cron.recoverMissedExecutions
-      })
+    const getCtx = () => ({
+      name: this.cron.name,
+      traceId: CronBuilder.rTracerPlugin
+        ? CronBuilder.rTracerPlugin.id()
+        : null,
+      pattern: this.cron.pattern,
+      timezone: this.cron.timezone,
+      runOnInit: this.cron.runOnInit,
+      recoverMissedExecutions: this.cron.recoverMissedExecutions
+    })
 
-      const options = Options.create({
-        name: this.cron.name,
-        timezone: this.cron.timezone,
-        runOnInit: this.cron.runOnInit,
-        scheduled: this.cron.scheduled,
-        recoverMissedExecutions: this.cron.recoverMissedExecutions
-      })
-
-      if (CronBuilder.rTracerPlugin) {
-        return schedule(
-          this.cron.pattern,
-          () =>
-            CronBuilder.rTracerPlugin.runWithId(() =>
-              this.cron.handler(getCtx())
-            ),
-          options
-        )
-      }
-
-      return schedule(
-        this.cron.pattern,
-        () => this.cron.handler(getCtx()),
-        options
-      )
-    }
-
-    if (!CronBuilder.exceptionHandler) {
-      this.cron.handler = handler
-
-      return register()
-    }
+    const options = Options.create({
+      name: this.cron.name,
+      timezone: this.cron.timezone,
+      runOnInit: this.cron.runOnInit,
+      scheduled: this.cron.scheduled,
+      recoverMissedExecutions: this.cron.recoverMissedExecutions
+    })
 
     this.cron.handler = async (...args: any[]) => {
-      try {
-        await handler(...args)
-      } catch (err) {
-        CronBuilder.exceptionHandler.handle(err)
+      return handler(...args)
+    }
+
+    if (CronBuilder.exceptionHandler) {
+      this.cron.handler = async (...args: any[]) => {
+        try {
+          await handler(...args)
+        } catch (err) {
+          CronBuilder.exceptionHandler.handle(err)
+        }
       }
     }
 
-    return register()
+    if (CronBuilder.rTracerPlugin) {
+      const rTracerHandler = () => {
+        return CronBuilder.rTracerPlugin.runWithId(() => {
+          const ctx = getCtx()
+
+          if (CronBuilder.loggerIsSet) {
+            Log.channelOrVanilla('cronjob').info(ctx)
+          }
+
+          return this.cron.handler(ctx)
+        })
+      }
+
+      return schedule(this.cron.pattern, rTracerHandler, options)
+    }
+
+    const basicHandler = () => {
+      const ctx = getCtx()
+
+      if (CronBuilder.loggerIsSet) {
+        Log.channelOrVanilla('cronjob').info(ctx)
+      }
+
+      return this.cron.handler(ctx)
+    }
+
+    return schedule(this.cron.pattern, basicHandler, options)
   }
 
   /**

@@ -43,6 +43,20 @@ export class CronImpl extends Macroable {
   }
 
   /**
+   * Register the logger for all tasks.
+   *
+   * @example
+   * ```ts
+   * Cron.setLogger()
+   * ```
+   */
+  public setLogger(isToSetLogger: boolean) {
+    CronBuilder.loggerIsSet = isToSetLogger
+
+    return this
+  }
+
+  /**
    * Register the error handler for all tasks.
    *
    * @example
