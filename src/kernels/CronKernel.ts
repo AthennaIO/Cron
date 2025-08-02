@@ -46,6 +46,24 @@ export class CronKernel {
   }
 
   /**
+   * Register the logger to all Cron tasks.
+   */
+  public async registerLogger() {
+    if (
+      !Config.exists('cron.logger.enabled') ||
+      Config.is('cron.logger.enabled', false)
+    ) {
+      debug(
+        'Not able to register cronjob logger. Enable it in your cron.logger.enabled configuration.'
+      )
+
+      return
+    }
+
+    CronBuilder.loggerIsSet = Config.is('cron.logger.enabled', true)
+  }
+
+  /**
    * Register all the schedulers found inside "rc.schedulers" config
    * inside the service provider.
    */
