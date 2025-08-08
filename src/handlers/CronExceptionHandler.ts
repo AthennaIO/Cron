@@ -32,20 +32,8 @@ export class CronExceptionHandler {
   public async handle(error: any): Promise<void> {
     error.code = String.toSnakeCase(`${error.code}` || error.name).toUpperCase()
 
-    const isException = Is.Exception(error)
-    const isDebugMode = Config.get('app.debug', true)
-    const isInternalServerError = Is.Error(error) && !isException
-
-    if (!isException) {
+    if (!Is.Exception(error)) {
       error = error.toAthennaException()
-    }
-
-    if (isInternalServerError && !isDebugMode) {
-      error.name = 'Internal error'
-      error.code = 'E_INTERNAL_ERROR'
-      error.message = 'An internal error has occurred.'
-
-      delete error.stack
     }
 
     if (!this.canBeLogged(error)) {
