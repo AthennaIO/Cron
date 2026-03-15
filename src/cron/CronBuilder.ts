@@ -125,7 +125,7 @@ export class CronBuilder extends Macroable {
         try {
           await handler(...args)
         } catch (err) {
-          CronBuilder.exceptionHandler.handle(err)
+          CronBuilder.exceptionHandler.handle({ error: err })
         }
       }
     }
