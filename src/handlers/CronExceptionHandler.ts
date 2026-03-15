@@ -42,6 +42,8 @@ export class CronExceptionHandler extends ExceptionHandler {
       error = error.toAthennaException()
     }
 
+    await super.handle({ error })
+
     if (!this.canBeLogged(error)) {
       return
     }
