@@ -7,11 +7,17 @@
  * file that was distributed with this source code.
  */
 
+import {
+  Is,
+  String,
+  ExceptionHandler,
+  type ExceptionHandlerContext
+} from '@athenna/common'
+
 import { Log } from '@athenna/logger'
 import { Config } from '@athenna/config'
-import { Is, String } from '@athenna/common'
 
-export class CronExceptionHandler {
+export class CronExceptionHandler extends ExceptionHandler {
   /**
    * Error codes that should be ignored from logging.
    */
@@ -29,7 +35,7 @@ export class CronExceptionHandler {
   /**
    * The exception handler of all Artisan commands.
    */
-  public async handle(error: any): Promise<void> {
+  public async handle({ error }: ExceptionHandlerContext): Promise<void> {
     error.code = String.toSnakeCase(`${error.code}` || error.name).toUpperCase()
 
     if (!Is.Exception(error)) {
