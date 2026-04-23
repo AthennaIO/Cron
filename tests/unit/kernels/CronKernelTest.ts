@@ -8,11 +8,12 @@
  */
 
 import { Cron } from '#src/facades/Cron'
-import { context, createContextKey } from '@opentelemetry/api'
+import { OtelProvider } from '@athenna/otel'
 import { Path, Sleep } from '@athenna/common'
 import { CronBuilder } from '#src/cron/CronBuilder'
 import { CronKernel } from '#src/kernels/CronKernel'
 import { CronProvider } from '#src/providers/CronProvider'
+import { context, createContextKey } from '@opentelemetry/api'
 import { CronExceptionHandler } from '#src/handlers/CronExceptionHandler'
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
 import { Test, BeforeEach, AfterEach, type Context, Mock, Cleanup } from '@athenna/test'
@@ -28,6 +29,7 @@ export class CronKernelTest {
     CronBuilder.exceptionHandler = undefined
 
     await Config.loadAll(Path.fixtures('config'))
+    new OtelProvider().register()
     new CronProvider().register()
   }
 
@@ -36,6 +38,7 @@ export class CronKernelTest {
     Mock.restoreAll()
     context.disable()
 
+    await new OtelProvider().shutdown()
     Cron.close().truncate()
   }
 
