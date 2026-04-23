@@ -119,9 +119,7 @@ export class CronKernelTest {
   @Test()
   @Cleanup(() => Config.set('cron.otel.contextEnabled', false))
   @Cleanup(() => Config.set('cron.otel.contextBindings', []))
-  public async shouldBeAbleToRunCronHandlersInsideConfiguredOtelContext({
-    assert
-  }: Context) {
+  public async shouldBeAbleToRunCronHandlersInsideConfiguredOtelContext({ assert }: Context) {
     const kernel = new CronKernel()
     const schedulerKey = createContextKey('cron.scheduler')
     const traceIdKey = createContextKey('cron.traceId')
