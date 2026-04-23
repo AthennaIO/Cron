@@ -9,9 +9,12 @@
 
 import { schedule } from 'node-cron'
 import { Log } from '@athenna/logger'
+import { Config } from '@athenna/config'
 import type { CronHandler } from '#src/types'
-import { Macroable, Options } from '@athenna/common'
+import { Macroable, Module, Options } from '@athenna/common'
 import type { CronExceptionHandler } from '#src/handlers/CronExceptionHandler'
+
+const otelModule = await Module.safeImport('@athenna/otel')
 
 export class CronBuilder extends Macroable {
   public static rTracerPlugin: any
@@ -130,33 +133,27 @@ export class CronBuilder extends Macroable {
       }
     }
 
-    if (CronBuilder.rTracerPlugin) {
-      const rTracerHandler = () => {
-        return CronBuilder.rTracerPlugin.runWithId(() => {
-          const ctx = getCtx()
-
-          if (CronBuilder.loggerIsSet) {
-            Log.channelOrVanilla('cronjob').info(ctx)
-          }
-
-          return this.cron.handler(ctx)
-        })
-      }
-
-      return schedule(this.cron.pattern, rTracerHandler, options)
-    }
-
-    const basicHandler = () => {
+    const execute = () => {
       const ctx = getCtx()
 
-      if (CronBuilder.loggerIsSet) {
-        Log.channelOrVanilla('cronjob').info(ctx)
-      }
+      return this.runWithOtelContext(ctx, () => {
+        if (CronBuilder.loggerIsSet) {
+          Log.channelOrVanilla('cronjob').info(ctx)
+        }
 
-      return this.cron.handler(ctx)
+        return this.cron.handler(ctx)
+      })
     }
 
-    return schedule(this.cron.pattern, basicHandler, options)
+    if (CronBuilder.rTracerPlugin) {
+      return schedule(
+        this.cron.pattern,
+        () => CronBuilder.rTracerPlugin.runWithId(execute),
+        options
+      )
+    }
+
+    return schedule(this.cron.pattern, execute, options)
   }
 
   /**
@@ -244,5 +241,16 @@ export class CronBuilder extends Macroable {
     this.cron.recoverMissedExecutions = recoverMissedExecutions
 
     return this
+  }
+
+  private runWithOtelContext<T>(ctx: any, callback: () => T): T {
+    if (!Config.is('cron.otel.contextEnabled', true) || !otelModule) {
+      return callback()
+    }
+
+    return otelModule.Otel.withContext(callback, {
+      bindings: Config.get('cron.otel.contextBindings', []),
+      resolveBinding: binding => binding.resolve(ctx)
+    })
   }
 }

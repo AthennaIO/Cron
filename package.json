@@ -1,6 +1,6 @@
 {
   "name": "@athenna/cron",
-  "version": "5.12.0",
+  "version": "5.13.0",
   "description": "Athenna scheduler application. Built on top of node-cron.",
   "license": "MIT",
   "author": "João Lenon <lenon@athenna.io>",
@@ -57,14 +57,17 @@
     "node-cron": "^3.0.3"
   },
   "devDependencies": {
-    "@athenna/artisan": "^5.11.0",
-    "@athenna/common": "^5.30.0",
+    "@athenna/artisan": "^5.12.0",
+    "@athenna/common": "^5.31.0",
     "@athenna/config": "^5.6.0",
     "@athenna/ioc": "^5.2.0",
     "@athenna/logger": "^5.14.0",
+    "@athenna/otel": "file:../Otel",
     "@athenna/test": "^5.6.0",
     "@athenna/tsconfig": "^5.0.0",
     "@athenna/view": "^5.4.0",
+    "@opentelemetry/api": "^1.9.1",
+    "@opentelemetry/context-async-hooks": "^2.7.0",
     "@types/node-cron": "^3.0.11",
     "@typescript-eslint/eslint-plugin": "^8.57.0",
     "@typescript-eslint/parser": "^8.57.0",
