@@ -8,12 +8,15 @@
  */
 
 import { Cron } from '#src/facades/Cron'
+import { OtelProvider } from '@athenna/otel'
 import { Path, Sleep } from '@athenna/common'
 import { CronBuilder } from '#src/cron/CronBuilder'
 import { CronKernel } from '#src/kernels/CronKernel'
 import { CronProvider } from '#src/providers/CronProvider'
+import { context, createContextKey } from '@opentelemetry/api'
 import { CronExceptionHandler } from '#src/handlers/CronExceptionHandler'
-import { Test, BeforeEach, AfterEach, type Context, Mock } from '@athenna/test'
+import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
+import { Test, BeforeEach, AfterEach, type Context, Mock, Cleanup } from '@athenna/test'
 import { CustomCronExceptionHandler } from '#tests/fixtures/handlers/CustomCronExceptionHandler'
 
 export class CronKernelTest {
@@ -21,17 +24,21 @@ export class CronKernelTest {
   public async beforeEach() {
     ioc.reconstruct()
 
+    context.setGlobalContextManager(new AsyncLocalStorageContextManager().enable())
     CronBuilder.rTracerPlugin = undefined
     CronBuilder.exceptionHandler = undefined
 
     await Config.loadAll(Path.fixtures('config'))
+    new OtelProvider().register()
     new CronProvider().register()
   }
 
   @AfterEach()
   public async afterEach() {
     Mock.restoreAll()
+    context.disable()
 
+    await new OtelProvider().shutdown()
     Cron.close().truncate()
   }
 
@@ -110,6 +117,42 @@ export class CronKernelTest {
     await Sleep.for(100).milliseconds().wait()
 
     assert.isDefined(traceId)
+  }
+
+  @Test()
+  @Cleanup(() => Config.set('cron.otel.contextEnabled', false))
+  @Cleanup(() => Config.set('cron.otel.contextBindings', []))
+  public async shouldBeAbleToRunCronHandlersInsideConfiguredOtelContext({ assert }: Context) {
+    const kernel = new CronKernel()
+    const schedulerKey = createContextKey('cron.scheduler')
+    const traceIdKey = createContextKey('cron.traceId')
+    let values: any = {}
+
+    Config.set('cron.otel.contextEnabled', true)
+    Config.set('cron.otel.contextBindings', [
+      { key: schedulerKey, resolve: ctx => ctx.name },
+      { key: traceIdKey, resolve: ctx => ctx.traceId }
+    ])
+
+    await kernel.registerRTracer()
+
+    Cron.schedule()
+      .name('otel_scheduler')
+      .pattern('* * * * *')
+      .runOnInit(true)
+      .handler(ctx => {
+        values = {
+          name: context.active().getValue(schedulerKey),
+          traceId: context.active().getValue(traceIdKey),
+          ctxTraceId: ctx.traceId
+        }
+      })
+
+    await Sleep.for(100).milliseconds().wait()
+
+    assert.equal(values.name, 'otel_scheduler')
+    assert.equal(values.traceId, values.ctxTraceId)
+    assert.isDefined(values.traceId)
   }
 
   @Test()
