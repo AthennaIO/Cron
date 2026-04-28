@@ -6,30 +6,7 @@ import { File, Path, Module } from '@athenna/common'
 import { Annotation, type ServiceMeta } from '@athenna/ioc'
 import { CronExceptionHandler } from '#src/handlers/CronExceptionHandler'
 
-const rTracerPlugin = await Module.safeImport('cls-rtracer')
-
 export class CronKernel {
-  /**
-   * Register the cls-rtracer plugin in the Cron.
-   */
-  public async registerRTracer(): Promise<void> {
-    if (Config.is('cron.rTracer.enabled', false)) {
-      debug(
-        'Not able to register rTracer plugin. Set the cron.rTracer.enabled configuration as true.'
-      )
-
-      return
-    }
-
-    if (!rTracerPlugin) {
-      debug('Not able to register tracer plugin. Install cls-rtracer package.')
-
-      return
-    }
-
-    CronBuilder.registerRTracer(rTracerPlugin)
-  }
-
   /**
    * Register the exception handler for all Cron tasks.
    */

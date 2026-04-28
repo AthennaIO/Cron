@@ -25,7 +25,6 @@ export class CronKernelTest {
     ioc.reconstruct()
 
     context.setGlobalContextManager(new AsyncLocalStorageContextManager().enable())
-    CronBuilder.rTracerPlugin = undefined
     CronBuilder.exceptionHandler = undefined
 
     await Config.loadAll(Path.fixtures('config'))
@@ -79,35 +78,11 @@ export class CronKernelTest {
   }
 
   @Test()
-  public async shouldBeAbleToRegisterRTracerPluginInCronHandler({ assert }: Context) {
-    const kernel = new CronKernel()
-
-    await kernel.registerRTracer()
-
-    assert.isDefined(CronBuilder.rTracerPlugin)
-  }
-
-  @Test()
-  public async shouldNotRegisterRTracerPluginInCronHandlerIfRTracerConfigIsDisabled({ assert }: Context) {
-    Config.set('cron.rTracer.enabled', false)
-
-    const kernel = new CronKernel()
-
-    await kernel.registerRTracer()
-
-    assert.isUndefined(CronBuilder.rTracerPlugin)
-  }
-
-  @Test()
-  public async shouldBeAbleToGetTraceIdInHandlerWhenRTracerPluginIsEnabled({ assert }: Context) {
-    const kernel = new CronKernel()
-
-    await kernel.registerRTracer()
-
+  public async shouldBeAbleToGetTraceIdInHandlerFromTheActiveOtelSpan({ assert }: Context) {
     let traceId = null
 
     Cron.schedule()
-      .name('r_tracer')
+      .name('otel_scheduler_trace')
       .pattern('* * * * *')
       .runOnInit(true)
       .handler(ctx => {
@@ -123,7 +98,6 @@ export class CronKernelTest {
   @Cleanup(() => Config.set('cron.otel.contextEnabled', false))
   @Cleanup(() => Config.set('cron.otel.contextBindings', []))
   public async shouldBeAbleToRunCronHandlersInsideConfiguredOtelContext({ assert }: Context) {
-    const kernel = new CronKernel()
     const schedulerKey = createContextKey('cron.scheduler')
     const traceIdKey = createContextKey('cron.traceId')
     let values: any = {}
@@ -133,8 +107,6 @@ export class CronKernelTest {
       { key: schedulerKey, resolve: ctx => ctx.name },
       { key: traceIdKey, resolve: ctx => ctx.traceId }
     ])
-
-    await kernel.registerRTracer()
 
     Cron.schedule()
       .name('otel_scheduler')
