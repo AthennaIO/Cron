@@ -11,22 +11,15 @@ import { schedule } from 'node-cron'
 import { Log } from '@athenna/logger'
 import { Config } from '@athenna/config'
 import type { CronHandler } from '#src/types'
+import { SpanStatusCode, trace } from '@opentelemetry/api'
 import { Macroable, Module, Options } from '@athenna/common'
 import type { CronExceptionHandler } from '#src/handlers/CronExceptionHandler'
 
 const otelModule = await Module.safeImport('@athenna/otel')
 
 export class CronBuilder extends Macroable {
-  public static rTracerPlugin: any
   public static loggerIsSet: boolean = false
   public static exceptionHandler: CronExceptionHandler
-
-  /**
-   * Register the cls-rtracer plugin into cron handlers.
-   */
-  public static registerRTracer(plugin: any) {
-    this.rTracerPlugin = plugin
-  }
 
   /**
    * Register the logger plugin into cron handlers.
@@ -102,9 +95,7 @@ export class CronBuilder extends Macroable {
   public handler(handler: CronHandler) {
     const getCtx = () => ({
       name: this.cron.name,
-      traceId: CronBuilder.rTracerPlugin
-        ? CronBuilder.rTracerPlugin.id()
-        : null,
+      traceId: null,
       pattern: this.cron.pattern,
       timezone: this.cron.timezone,
       runOnInit: this.cron.runOnInit,
@@ -143,14 +134,6 @@ export class CronBuilder extends Macroable {
 
         return this.cron.handler(ctx)
       })
-    }
-
-    if (CronBuilder.rTracerPlugin) {
-      return schedule(
-        this.cron.pattern,
-        () => CronBuilder.rTracerPlugin.runWithId(execute),
-        options
-      )
     }
 
     return schedule(this.cron.pattern, execute, options)
@@ -248,9 +231,59 @@ export class CronBuilder extends Macroable {
       return callback()
     }
 
-    return otelModule.Otel.withContext(callback, {
-      bindings: Config.get('cron.otel.contextBindings', []),
-      resolveBinding: binding => binding.resolve(ctx)
+    return this.runInsideSpan(ctx, () => {
+      return otelModule.Otel.withContext(callback, {
+        bindings: Config.get('cron.otel.contextBindings', []),
+        resolveBinding: binding => binding.resolve(ctx)
+      })
     })
+  }
+
+  private runInsideSpan<T>(ctx: any, callback: () => T): T {
+    const tracer = trace.getTracer('@athenna/cron')
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    return tracer.startActiveSpan(this.getSpanName(), span => {
+      ctx.traceId = span.spanContext().traceId
+
+      try {
+        const result = callback()
+
+        if (result instanceof Promise) {
+          return result
+            .then(value => {
+              span.end()
+
+              return value
+            })
+            .catch(error => {
+              throw this.handleSpanError(error, span)
+            }) as T
+        }
+
+        span.end()
+
+        return result
+      } catch (error) {
+        throw this.handleSpanError(error, span)
+      }
+    })
+  }
+
+  private getSpanName() {
+    if (this.cron.name) {
+      return `cron.execute.${this.cron.name}`
+    }
+
+    return 'cron.execute'
+  }
+
+  private handleSpanError(error: any, span: any) {
+    span.recordException(error)
+    span.setStatus({ code: SpanStatusCode.ERROR, message: error?.message })
+    span.end()
+
+    return error
   }
 }
