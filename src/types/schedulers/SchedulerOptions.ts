@@ -42,8 +42,8 @@ export type SchedulerOptions = {
 
   /**
    * If this option is `true`, when the main thread froze for any reason,
-   * the elapsed time since last execution will be considered an all the
-   * missed executions will be triggered.
+   * the elapsed time since last execution will be considered and all the
+   * missed executions will be triggered, each one only once.
    *
    * @default false
    */

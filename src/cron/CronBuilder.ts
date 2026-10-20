@@ -7,6 +7,7 @@
  * file that was distributed with this source code.
  */
 
+import { debug } from '#src/debug'
 import { schedule } from 'node-cron'
 import { Log } from '@athenna/logger'
 import { Config } from '@athenna/config'
@@ -124,7 +125,30 @@ export class CronBuilder extends Macroable {
       }
     }
 
-    const execute = () => {
+    /**
+     * The second (epoch seconds) of the last scheduled time this
+     * task ran for. node-cron may emit the same matched time twice
+     * when recovering missed executions, so any matched time that
+     * is not after it is skipped.
+     */
+    let lastMatchedSecond: number = null
+
+    const execute = (now?: Date | string) => {
+      if (now instanceof Date) {
+        const matchedSecond = Math.floor(now.getTime() / 1000)
+
+        if (lastMatchedSecond !== null && matchedSecond <= lastMatchedSecond) {
+          debug(
+            'Skipping execution of %s scheduler, it already ran for this matched time.',
+            this.cron.name
+          )
+
+          return
+        }
+
+        lastMatchedSecond = matchedSecond
+      }
+
       const ctx = getCtx()
 
       return this.runWithOtelContext(ctx, () => {
@@ -210,13 +234,13 @@ export class CronBuilder extends Macroable {
 
   /**
    * Specifies whether to recover missed executions instead
-   * of skipping them.
+   * of skipping them. Each missed execution runs only once.
    *
    * @default false
    * @example
    * ```ts
    * Cron.schedule().pattern('* * * * *')
-   *    .recoverMissingExecutions(true)
+   *    .recoverMissedExecutions(true)
    *    .handler(() => console.log('hey'))
    * ```
    */

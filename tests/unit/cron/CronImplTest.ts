@@ -9,7 +9,7 @@
 
 import { Cron } from '#src/facades/Cron'
 import { CronProvider } from '#src/providers/CronProvider'
-import { Test, BeforeEach, AfterEach, type Context } from '@athenna/test'
+import { Test, BeforeEach, AfterEach, Mock, type Context } from '@athenna/test'
 
 export class CronImplTest {
   @BeforeEach()
@@ -22,6 +22,8 @@ export class CronImplTest {
   @AfterEach()
   public async afterEach() {
     await new CronProvider().shutdown()
+
+    Mock.restoreAll()
   }
 
   @Test()
@@ -154,5 +156,121 @@ export class CronImplTest {
     const task = tasks.get('overwriteScheduler')
 
     assert.isTrue(task.options.scheduled)
+  }
+
+  @Test()
+  public async shouldRunTheSchedulerOnlyOnceForTheSameMatchedTimeWhenRecoveringMissedExecutions({ assert }: Context) {
+    const clock = Mock.useFakeTimers(new Date('2026-10-20T10:59:59.500Z'))
+
+    try {
+      let runs = 0
+
+      Cron.schedule()
+        .name('recoverWithoutDuplicates')
+        .pattern('* * * * *')
+        .recoverMissedExecutions(true)
+        .handler(() => runs++)
+
+      clock.tick(1000)
+
+      assert.equal(runs, 1)
+
+      clock.tick(1000)
+
+      assert.equal(runs, 1)
+
+      clock.tick(58000)
+
+      assert.equal(runs, 1)
+
+      clock.tick(1000)
+
+      assert.equal(runs, 2)
+
+      clock.tick(1000)
+
+      assert.equal(runs, 2)
+    } finally {
+      Cron.close()
+      clock.restore()
+    }
+  }
+
+  @Test()
+  public async shouldRunADailySchedulerWithTimezoneOnlyOnceWhenRecoveringMissedExecutions({ assert }: Context) {
+    const clock = Mock.useFakeTimers(new Date('2026-10-20T10:59:59.500Z'))
+
+    try {
+      const runs: string[] = []
+
+      Cron.schedule()
+        .name('dailyRecoverWithoutDuplicates')
+        .pattern('0 8 * * *')
+        .timezone('America/Sao_Paulo')
+        .recoverMissedExecutions(true)
+        .handler(() => runs.push(new Date().toISOString()))
+
+      clock.tick(5000)
+
+      assert.deepEqual(runs, ['2026-10-20T11:00:00.500Z'])
+    } finally {
+      Cron.close()
+      clock.restore()
+    }
+  }
+
+  @Test()
+  public async shouldRecoverAnExecutionMissedBecauseTheEventLoopWasBlockedOnlyOnce({ assert }: Context) {
+    const clock = Mock.useFakeTimers(new Date('2026-10-20T10:59:59.500Z'))
+
+    try {
+      const runs: string[] = []
+
+      Cron.schedule()
+        .name('recoverBlockedExecution')
+        .pattern('* * * * *')
+        .recoverMissedExecutions(true)
+        .handler(() => runs.push(new Date().toISOString()))
+
+      /**
+       * The check that should happen at 11:00:00.500 only happens
+       * at 11:00:01.700, when 11:00:00 is not matching anymore.
+       */
+      clock.jump(2200)
+
+      assert.deepEqual(runs, ['2026-10-20T11:00:01.700Z'])
+
+      clock.tick(5000)
+
+      assert.deepEqual(runs, ['2026-10-20T11:00:01.700Z'])
+    } finally {
+      Cron.close()
+      clock.restore()
+    }
+  }
+
+  @Test()
+  public async shouldSkipAnExecutionMissedBecauseTheEventLoopWasBlockedWhenNotRecoveringMissedExecutions({
+    assert
+  }: Context) {
+    const clock = Mock.useFakeTimers(new Date('2026-10-20T10:59:59.500Z'))
+
+    try {
+      let runs = 0
+
+      Cron.schedule()
+        .name('skipBlockedExecution')
+        .pattern('* * * * *')
+        .recoverMissedExecutions(false)
+        .handler(() => runs++)
+
+      clock.jump(2200)
+      clock.tick(5000)
+
+      assert.equal(runs, 0)
+    } finally {
+      Cron.close()
+      clock.restore()
+    }
   }
 }
