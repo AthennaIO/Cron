@@ -197,6 +197,81 @@ export class CronImplTest {
   }
 
   @Test()
+  public async shouldRunAScheduledTimeOnlyInTheProcessTheLockGivesItTo({ assert }: Context) {
+    const clock = Mock.useFakeTimers(new Date('2026-11-06T13:59:59.500Z'))
+    const claimed = new Set<string>()
+    const asked: string[] = []
+
+    Config.set('cron.lock', ({ name, matchedAt }) => {
+      const key = `${name}:${matchedAt.toISOString()}`
+
+      asked.push(key)
+
+      if (claimed.has(key)) {
+        return false
+      }
+
+      claimed.add(key)
+
+      return true
+    })
+
+    try {
+      let runs = 0
+
+      /**
+       * Two copies of the same scheduler, as in two containers alive
+       * during a deploy.
+       */
+      for (let i = 0; i < 2; i++) {
+        Cron.schedule()
+          .name(`lockedScheduler`)
+          .pattern('* * * * *')
+          .handler(() => runs++)
+      }
+
+      await clock.tickAsync(1000)
+
+      assert.equal(runs, 1)
+      assert.deepEqual(asked, ['lockedScheduler:2026-11-06T14:00:00.000Z', 'lockedScheduler:2026-11-06T14:00:00.000Z'])
+
+      await clock.tickAsync(60000)
+
+      assert.equal(runs, 2)
+    } finally {
+      Cron.close()
+      clock.restore()
+      Config.delete('cron.lock')
+    }
+  }
+
+  @Test()
+  public async shouldRunTheScheduledTimeWhenTheLockFails({ assert }: Context) {
+    const clock = Mock.useFakeTimers(new Date('2026-11-06T13:59:59.500Z'))
+
+    Config.set('cron.lock', () => {
+      throw new Error('redis is down')
+    })
+
+    try {
+      let runs = 0
+
+      Cron.schedule()
+        .name('lockFails')
+        .pattern('* * * * *')
+        .handler(() => runs++)
+
+      await clock.tickAsync(1000)
+
+      assert.equal(runs, 1)
+    } finally {
+      Cron.close()
+      clock.restore()
+      Config.delete('cron.lock')
+    }
+  }
+
+  @Test()
   public async shouldRunADailySchedulerWithTimezoneOnlyOnceWhenRecoveringMissedExecutions({ assert }: Context) {
     const clock = Mock.useFakeTimers(new Date('2026-10-20T10:59:59.500Z'))
 

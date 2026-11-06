@@ -133,7 +133,7 @@ export class CronBuilder extends Macroable {
      */
     let lastMatchedSecond: number = null
 
-    const execute = (now?: Date | string) => {
+    const execute = async (now?: Date | string) => {
       if (now instanceof Date) {
         const matchedSecond = Math.floor(now.getTime() / 1000)
 
@@ -147,6 +147,21 @@ export class CronBuilder extends Macroable {
         }
 
         lastMatchedSecond = matchedSecond
+
+        /**
+         * Awaited only when a lock is set, so without one the handler
+         * still starts in the same tick node-cron matched the time.
+         */
+        const claim = this.claimRun(new Date(matchedSecond * 1000))
+
+        if (claim !== true && !(await claim)) {
+          debug(
+            'Skipping execution of %s scheduler, cron.lock gave this matched time to another process.',
+            this.cron.name
+          )
+
+          return
+        }
       }
 
       const ctx = getCtx()
@@ -161,6 +176,32 @@ export class CronBuilder extends Macroable {
     }
 
     return schedule(this.cron.pattern, execute, options)
+  }
+
+  /**
+   * Ask `cron.lock` whether this process runs the scheduled time. Without
+   * a lock, or for a task without a name (nothing tells two processes it
+   * is the same task), it always runs. A lock that fails lets it run: one
+   * copy of the application is the usual case, and skipping every task
+   * while the lock's store is down would stop them all.
+   */
+  private claimRun(matchedAt: Date): true | Promise<boolean> {
+    const lock = Config.get('cron.lock')
+
+    if (typeof lock !== 'function' || !this.cron.name) {
+      return true
+    }
+
+    return Promise.resolve()
+      .then(() => lock({ name: this.cron.name, matchedAt }))
+      .then(claimed => claimed !== false)
+      .catch(error => {
+        try {
+          Log.channelOrVanilla('exception').error(error)
+        } catch {}
+
+        return true
+      })
   }
 
   /**

@@ -9,5 +9,6 @@
 
 export * from '#src/types/Context'
 export * from '#src/types/CronHandler'
+export * from '#src/types/CronLock'
 export * from '#src/types/ScheduledTask'
 export * from '#src/types/schedulers/SchedulerOptions'
